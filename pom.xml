@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.github.BeardedManZhao</groupId>
             <artifactId>zhao-utils</artifactId>
-            <version>1.0.20230919</version>
+            <version>1.0.20230920</version>
         </dependency>
     </dependencies>
 

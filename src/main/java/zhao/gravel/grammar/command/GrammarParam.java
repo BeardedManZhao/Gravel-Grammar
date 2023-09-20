@@ -1,15 +1,21 @@
 package zhao.gravel.grammar.command;
 
+import zhao.gravel.grammar.StreamString;
+import zhao.utils.IOUtils;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author zhao
  */
-public class GrammarParam implements Syntax {
+public class GrammarParam extends StreamString implements Syntax {
 
     private final HashMap<String, Syntax> syntaxHashMap;
     private final String name;
+    private final int hash;
 
     protected GrammarParam(String name, Syntax... allSyntax) {
         this.name = name;
@@ -17,6 +23,7 @@ public class GrammarParam implements Syntax {
         for (Syntax syntax : allSyntax) {
             syntaxHashMap.put(syntax.getSyntaxName(), syntax);
         }
+        hash = this.hashCode();
     }
 
     /**
@@ -84,4 +91,42 @@ public class GrammarParam implements Syntax {
     public Syntax get(String syntaxName) {
         return this.syntaxHashMap.get(syntaxName);
     }
+
+    /**
+     * 不指定方向的添加元素
+     *
+     * @param outStream 图代码的输出数据流。
+     *                  <p>
+     *                  graph code.
+     */
+    @Override
+    public void toString(PrintWriter outStream) {
+        for (Syntax value : this.syntaxHashMap.values()) {
+            outStream.append(String.valueOf(this.hash)).append('[').append(this.getSyntaxName()).append(']')
+                    .append(" --> ")
+                    .append(String.valueOf(value.getHashId())).append('[').append(value.getSyntaxName()).println(']');
+            value.toString(outStream);
+        }
+    }
+
+    /**
+     * @return hashcode
+     */
+    @Override
+    public int getHashId() {
+        return this.hash;
+    }
+
+    @Override
+    public String toString() {
+        final StringWriter stringWriter = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(stringWriter);
+        this.toString(printWriter, false);
+        final String s = stringWriter.getBuffer().toString();
+        IOUtils.close(stringWriter);
+        IOUtils.close(printWriter);
+        return s;
+    }
+
+
 }

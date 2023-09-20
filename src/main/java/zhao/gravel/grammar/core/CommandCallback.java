@@ -1,33 +1,58 @@
 package zhao.gravel.grammar.core;
 
+import zhao.gravel.grammar.StreamString;
 import zhao.gravel.grammar.command.ActuatorParam;
 import zhao.gravel.grammar.command.Syntax;
 import zhao.gravel.grammar.core.model.AnalyticalModel;
 import zhao.gravel.grammar.core.model.Parser;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 import static zhao.gravel.grammar.command.NotFindParam.NOT_FIND;
 
 
 /**
- * 命令回调函数类
+ * 命令回调函数类，在这里可以将语法对象，模式等组件结合起来，实现命令的解析。
+ * <p>
+ * Command callback function class, where syntax objects, patterns, and other components can be combined to achieve command parsing.
  *
  * @author zhao
  */
-public class CommandCallback implements SyntaxCallback, Syntax {
+public class CommandCallback extends StreamString implements SyntaxCallback, Syntax {
 
-    protected final Syntax syntax;
+    protected final HashMap<String, Syntax> allSyntaxTree;
     protected final String patternStr;
+    private final int hash;
     protected Parser parser;
 
-    protected CommandCallback(String pattern, Syntax syntax) {
-        this.syntax = syntax;
+    /**
+     * 实例化函数
+     *
+     * @param pattern 匹配模式字符串
+     * @param syntax  所有的语法树对象
+     */
+    protected CommandCallback(String pattern, HashMap<String, Syntax> syntax) {
+        this.allSyntaxTree = syntax;
         this.patternStr = pattern;
+        hash = this.hashCode();
     }
 
-    public static SyntaxCallback create(String pattern, Syntax syntax) {
-        final CommandCallback commandCallback = new CommandCallback(pattern, syntax);
+    /**
+     * 创建出一个回调函数器对象。
+     *
+     * @param pattern 回调器对象解析命令的时候使用的解析匹配模式字符串。
+     * @param syntax  语法对象，一般情况下此应该是一个语法树，能够按照树的方式来进行识别操作
+     * @return 具有指定解析模式以及指定的语法的回调函数器对象。
+     */
+    public static SyntaxCallback create(String pattern, Syntax... syntax) {
+        final HashMap<String, Syntax> hashMap = new HashMap<>();
+        for (Syntax syntax1 : syntax) {
+            hashMap.put(syntax1.getSyntaxName(), syntax1);
+        }
+        final CommandCallback commandCallback = new CommandCallback(pattern, hashMap);
         commandCallback.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL);
         return commandCallback;
     }
@@ -98,6 +123,41 @@ public class CommandCallback implements SyntaxCallback, Syntax {
     }
 
     /**
+     * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
+     *
+     * @param isLR 是否以左右的方式来进行图的绘制，如果是就为true。
+     */
+    @Override
+    public void toString(PrintWriter printWriter, boolean isLR) {
+        printWriter.append("graph ").println(isLR ? "LR" : "BT");
+        this.toString(printWriter);
+    }
+
+    /**
+     * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
+     * <p>
+     * Draw a graph of all sub syntax trees contained in the current grammar in mermaid format.
+     *
+     * @param outStream 图代码的输出数据流。
+     *                  <p>
+     *                  graph code.
+     */
+    @Override
+    public void toString(PrintWriter outStream) {
+        for (Syntax value : this.allSyntaxTree.values()) {
+            value.toString(outStream);
+        }
+    }
+
+    /**
+     * @return hashcode
+     */
+    @Override
+    public int getHashId() {
+        return this.hash;
+    }
+
+    /**
      * @return 当前语法对象 对应的参数名称。
      */
     @Override
@@ -116,7 +176,7 @@ public class CommandCallback implements SyntaxCallback, Syntax {
      */
     @Override
     public void addSubSyntax(Syntax syntax) {
-        throw new UnsupportedOperationException("Callbacks do not support adding sub syntax. The correct step should be: 'Create a syntax object and then instantiate the callback through the syntax object'.");
+        this.allSyntaxTree.put(syntax.getSyntaxName(), syntax);
     }
 
     /**
@@ -130,7 +190,7 @@ public class CommandCallback implements SyntaxCallback, Syntax {
      */
     @Override
     public void addSubSyntax(Map<String, Syntax> allSyntax) {
-        throw new UnsupportedOperationException("Callbacks do not support adding sub syntax. The correct step should be: 'Create a syntax object and then instantiate the callback through the syntax object'.");
+        this.allSyntaxTree.putAll(allSyntax);
     }
 
     /**
@@ -147,6 +207,14 @@ public class CommandCallback implements SyntaxCallback, Syntax {
      */
     @Override
     public Syntax get(String syntaxName) {
-        return this.syntax;
+        return this.allSyntaxTree.getOrDefault(syntaxName, NOT_FIND);
+    }
+
+    @Override
+    public String toString() {
+        final StringWriter stringWriter = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(stringWriter);
+        this.toString(printWriter, false);
+        return stringWriter.getBuffer().toString();
     }
 }

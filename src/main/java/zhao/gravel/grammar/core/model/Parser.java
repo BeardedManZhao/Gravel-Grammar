@@ -29,4 +29,5 @@ public interface Parser {
      * After splitting, many substrings of the string will be returned.
      */
     String[] split(String grammar);
+
 }

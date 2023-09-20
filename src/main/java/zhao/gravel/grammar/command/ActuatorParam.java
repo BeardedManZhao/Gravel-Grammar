@@ -1,16 +1,21 @@
 package zhao.gravel.grammar.command;
 
+import zhao.gravel.grammar.StreamString;
+
+import java.io.PrintWriter;
 import java.util.Map;
 
 /**
  * @author zhao
  */
-public abstract class ActuatorParam implements Syntax {
+public abstract class ActuatorParam extends StreamString implements Syntax {
 
     private final String name;
+    private final int hash;
 
     protected ActuatorParam(String name) {
         this.name = name;
+        hash = this.hashCode();
     }
 
     /**
@@ -72,4 +77,32 @@ public abstract class ActuatorParam implements Syntax {
      * The execution logic function of the current executor parameter will return an arbitrary data type after execution.
      */
     public abstract Object run();
+
+    /**
+     * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
+     * <p>
+     * Draw a graph of all sub syntax trees contained in the current grammar in mermaid format.
+     *
+     * @param outStream 图代码的输出数据流。
+     *                  <p>
+     *                  graph code.
+     */
+    @Override
+    public void toString(PrintWriter outStream) {
+        outStream
+                .append(String.valueOf(this.getHashId()))
+                .append("([")
+                .append(this.getSyntaxName())
+                .append("]) --> ")
+                .append(String.valueOf(Math.random()))
+                .println("[runCommand!!!!]");
+    }
+
+    /**
+     * @return hashcode
+     */
+    @Override
+    public int getHashId() {
+        return this.hash;
+    }
 }

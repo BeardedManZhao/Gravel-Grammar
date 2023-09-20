@@ -1,5 +1,6 @@
 package zhao.gravel.grammar.command;
 
+import java.io.PrintWriter;
 import java.util.Map;
 
 /**
@@ -50,5 +51,19 @@ public interface Syntax {
      */
     Syntax get(String syntaxName);
 
+    /**
+     * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
+     * <p>
+     * Draw a graph of all sub syntax trees contained in the current grammar in mermaid format.
+     *
+     * @param outStream 图代码的输出数据流。
+     *                  <p>
+     *                  graph code.
+     */
+    void toString(PrintWriter outStream);
 
+    /**
+     * @return hashcode
+     */
+    int getHashId();
 }

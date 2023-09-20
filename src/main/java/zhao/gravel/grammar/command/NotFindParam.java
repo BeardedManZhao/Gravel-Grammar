@@ -66,4 +66,12 @@ public class NotFindParam extends GrammarParam {
             }
         };
     }
+
+    /**
+     * @return hashcode
+     */
+    @Override
+    public int getHashId() {
+        return (int) (Math.random() * super.getHashId());
+    }
 }
