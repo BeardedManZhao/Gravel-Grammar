@@ -26,7 +26,7 @@ public interface SyntaxCallback {
      *
      * @param grammar 需要被解析的命令，在这里是一个字符串整体，回调类会自动的根据解析模式进行拆分。
      *                <p>
-     *                The command that needs to be parsed here is a string as a whole, and the callback class will automatically split it based on the parsing mode.
+     *                The command that needs to be parsed here is a string as a whole, and the callback class will automatically get it based on the parsing mode.
      * @return 根据语法执行的运行结果对象。
      * <p>
      * Run result object executed according to syntax.
@@ -40,7 +40,7 @@ public interface SyntaxCallback {
      *
      * @param grammar 需要被解析的命令，在这里是一个字符串数组，回调类不会自动的根据解析模式进行拆分。
      *                <p>
-     *                The command that needs to be parsed here is an array of strings, and the callback class will not automatically split based on the parsing mode.
+     *                The command that needs to be parsed here is an array of strings, and the callback class will not automatically get based on the parsing mode.
      * @return 根据语法执行的运行结果对象。
      * <p>
      * Run result object executed according to syntax.

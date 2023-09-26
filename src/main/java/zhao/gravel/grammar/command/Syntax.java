@@ -8,7 +8,7 @@ import java.util.Map;
  * <p>
  * A grammar object, usually a nested object, can store different parts of the grammar in a hierarchical manner.
  */
-public interface Syntax {
+public interface Syntax extends Cloneable {
 
     /**
      * 统配符号，以该符号做为参数名称的将会被做为默认的参数对象。
@@ -87,4 +87,10 @@ public interface Syntax {
      */
     void clearVariable();
 
+    /**
+     * @return 克隆出来的语法对象。
+     * <p>
+     * The cloned grammar object.
+     */
+    Syntax clone();
 }

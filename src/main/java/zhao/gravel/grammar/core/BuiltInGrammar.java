@@ -31,6 +31,23 @@ public enum BuiltInGrammar {
             }
 
 
+            /* group by */
+            final Syntax group_by = SaveParam.create(
+                    "group by", arrayList,
+                    new ActuatorParam(Syntax.WILDCARD) {
+                        /**
+                         * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
+                         * <p>
+                         * The execution logic function of the current executor parameter will return an arbitrary data type after execution.
+                         */
+                        @Override
+                        public Object run() {
+                            return transformation[2].function(arrayList);
+                        }
+                    }
+            );
+
+
             /* where 子句 */
             final ActuatorParam whereC = new ActuatorParam(Syntax.WILDCARD) {
 
@@ -44,6 +61,8 @@ public enum BuiltInGrammar {
                     return transformation[1].function(arrayList);
                 }
             };
+            whereC.addSubSyntax(group_by.clone());
+
 
 
             /* table */
@@ -59,6 +78,7 @@ public enum BuiltInGrammar {
                             whereC
                     )
             );
+            table.addSubSyntax(group_by);
 
 
             // 首先将 SQL 语法树准备出来 然后直接返回

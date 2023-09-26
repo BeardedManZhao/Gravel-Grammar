@@ -15,8 +15,8 @@ public class GrammarParam extends StreamString implements Syntax {
 
     protected final HashMap<String, Syntax> syntaxHashMap;
     private final String name;
-    private final int hash;
     protected Syntax defaultSyntax;
+    private int hash;
 
     protected GrammarParam(String name, Syntax... allSyntax) {
         this.name = name;
@@ -164,6 +164,18 @@ public class GrammarParam extends StreamString implements Syntax {
             if (value instanceof SaveParam) {
                 value.clearVariable();
             }
+        }
+    }
+
+    @Override
+    public GrammarParam clone() {
+        try {
+            GrammarParam clone = (GrammarParam) super.clone();
+            // TODO: 复制此处的可变状态，这样此克隆就不能更改初始克隆的内部
+            clone.hash = clone.hashCode();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
 }

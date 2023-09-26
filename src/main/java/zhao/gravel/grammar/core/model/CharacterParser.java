@@ -47,7 +47,7 @@ public class CharacterParser implements Parser {
     }
 
     @Override
-    public String[] split(String grammar) {
+    public String[] get(String grammar) {
         return StrUtils.splitBy(grammar, this.pattern);
     }
 }

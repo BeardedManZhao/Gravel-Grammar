@@ -17,12 +17,12 @@ public class RegularParser implements Parser {
      * <p>
      * Parser and Matching Pattern String Mapping Table
      */
-    private static final HashMap<String, RegularParser> HASH_MAP = new HashMap<>();
+    protected static final HashMap<String, RegularParser> REGULAR_PARSER_HASH_MAP = new HashMap<>();
 
-    private final String patternStr;
-    private final Pattern pattern;
+    protected final String patternStr;
+    protected final Pattern pattern;
 
-    private RegularParser(String pattern) {
+    protected RegularParser(String pattern) {
         this.patternStr = pattern;
         this.pattern = Pattern.compile(pattern);
     }
@@ -34,10 +34,10 @@ public class RegularParser implements Parser {
      * @return 解析器
      */
     public static RegularParser getInstance(String pattern) {
-        RegularParser parser = HASH_MAP.get(pattern);
+        RegularParser parser = REGULAR_PARSER_HASH_MAP.get(pattern);
         if (parser == null) {
             parser = new RegularParser(pattern);
-            HASH_MAP.put(parser.getPattern(), parser);
+            REGULAR_PARSER_HASH_MAP.put(parser.getPattern(), parser);
         }
         return parser;
     }
@@ -59,13 +59,13 @@ public class RegularParser implements Parser {
      *
      * @param grammar 需要被拆分的字符串。
      *                <p>
-     *                The string that needs to be split.
+     *                The string that needs to be get.
      * @return 拆分之后会返回字符串的许多子串。
      * <p>
      * After splitting, many substrings of the string will be returned.
      */
     @Override
-    public String[] split(String grammar) {
+    public String[] get(String grammar) {
         return this.pattern.split(grammar);
     }
 }

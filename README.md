@@ -6,21 +6,29 @@ A processing framework for parsing various syntax such as command code and perfo
 good syntax processing results. Registering the command class to the command callback class can achieve automatic
 processing effects, and the API is concise.
 
-### 获取方式
+### Framework access method
+
+The framework has been uploaded to the Maven repository, and can be imported into the project through the Maven
+dependencies below, and used as described.
 
 ```xml
 
 ```
 
-## 模块
+## module
 
-### 语法对象
+Here, we have introduced many components of the framework, which helps users understand the API calling methods of the
+framework, quickly get started with the framework, and integrate it into their respective projects.
 
-接口名称：zhao.gravel.grammar.command.Syntax
+### Grammar Object
 
-#### GrammarParam 类
+Interface name: zhao.gravel.grammar.command.Syntax
 
-此对象是一个最基本的语法类，其中存储着一个语法树的完整结构，并具有子语法对象的查询功能，通过针对此对象的嵌套，可以实现有效的语法树的构造，下面就是一个简单的语法树构造示例。
+#### GrammarParam class
+
+This object is the most basic syntax class, which stores the complete structure of a syntax tree and has the query
+function of sub syntax objects. By nesting this object, effective syntax tree construction can be achieved. Below is a
+simple syntax tree construction example.
 
 ```java
 package zhao.gravel.grammar;
@@ -34,31 +42,31 @@ import zhao.gravel.grammar.command.Syntax;
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 实例化一个语法对象的第一层
+        // Instantiate the first level of a syntax object
         final Syntax syntax = getSyntax();
-        // 查看语法树结构
+        // View the syntax tree structure
         System.out.println(syntax);
     }
 
     private static Syntax getSyntax() {
         return GrammarParam.create(
                 "get",
-                // 实例化语法对象的第二层的第一个分支
+                // instantiate the first branch of the second level of the syntax object
                 GrammarParam.create(
                         "data",
-                        // 实例化 get data 123 命令的执行器
+                        // instantiate the executor for the get data 123 command
                         new ActuatorParam("123") {
                             @Override
                             public Object run() {
-                                return "执行 get data 123 命令";
+                                return "Execute the get data 123 command";
                             }
                         }
                 ),
-                // 实例化语法对象的第二层的第二个分支 这里是一个执行器
+                // Instantiate the second branch of the second level of the syntax object Here is an executor
                 new ActuatorParam("123") {
                     @Override
                     public Object run() {
-                        return "执行 get 123 命令";
+                        return "Execute the get 123 command";
                     }
                 }
         );
@@ -77,9 +85,11 @@ graph BR
 509886383[get] --> 900317552[notFind]
 ```
 
-#### SaveParam 类
+#### SaveParam class
 
-顾名思义这是一个具有保存功能的类，如果想要从此类中提取出一个通配对象，那么其会将当前提取的参数做为变量保存到一个容器中，一般来说，在最终执行器中会根据变量来进行相对应的操作，接下来是一个简单的示例。
+As the name suggests, this is a class with save function. If you want to extract a wildcard object from this class, it
+will save the currently extracted parameters as variables into a container. Generally speaking, in the final executor,
+corresponding operations will be performed based on the variables. Here is a simple example.
 
 ```java
 package zhao.gravel.grammar;
@@ -95,28 +105,28 @@ import java.util.ArrayList;
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 实例化一个语法对象的第一层
+        // Instantiate the first level of a syntax object
         final Syntax syntax = getSyntax();
-        // 查看语法树结构
+        // View the syntax tree structure
         System.out.println(syntax);
     }
 
     private static Syntax getSyntax() {
-        // 准备一个变量容器
+        // Prepare a variable container
         ArrayList<Object> arrayList = new ArrayList<>();
-        // 开始构建 具有变量保存功能的语法树
+        // Start building a syntax tree with variable saving function
         return SaveParam.create(
                 "use", arrayList,
                 SaveParam.create(
                         Syntax.WILDCARD, arrayList,
-                        // 设置 use [param] show 命令的执行器
+                        // Set the executor of the use [param] show command
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
                                 return "show " + arrayList.get(0);
                             }
                         },
-                        // 设置 use [param] rm 命令的执行器
+                        // Set the executor of the use [param] rm command
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
@@ -138,11 +148,14 @@ graph BR
 1784662007([rm]) --> 0.29766585007391[runCommand!!!!]
 ```
 
-### 回调器对象
+### Callback Object
 
-类名称：zhao.gravel.grammar.core.SyntaxCallback
+class name：zhao.gravel.grammar.core.SyntaxCallback
 
-回调器是一种用于搜索语法树节点，并执行其对应逻辑的组件，其能够按照一定的规则来进行语法的解析，同时可以根据参数的有效路径找到指定的执行器对象，下面就是一个简单的示例，在示例中我们将语法树装载到了回调器中，并使用回调器执行了对应的命令。
+A callback is a component used to search for syntax tree nodes and execute their corresponding logic. It can parse
+syntax according to certain rules and find the specified executor object based on the valid path of parameters. Below is
+a simple example where we load the syntax tree into the callback and execute the corresponding command using the
+callback.
 
 ```java
 package zhao.gravel.grammar;
@@ -160,44 +173,44 @@ import java.util.ArrayList;
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 实例化一个语法对象的第一层
+        // Instantiate the first layer of a grammar object
         final Syntax syntax = getSyntax();
-        // 创建一个回调器
+        // Create a callback
         final CommandCallback get = CommandCallback.createGet(
-                // 设置语法器在解析命令的时候使用的匹配模式
+                // Set the matching mode used by the grammar when parsing commands
                 "\\s+",
-                // 将语法树提供给回调器
+                // Provide a syntax tree to the callback
                 syntax
         );
-        // 设置回调器的解析模式 TODO 设置为按照字符串解析 这也是默认的解析模式
+        // Set the callback's parsing mode TODO to parse by string, which is also the default parsing mode
         get.setAnalyticalModel(AnalyticalModel.CHARACTER_PATTERN);
-        // TODO 当然，也可以设置为按照正则解析
+        // TODO, of course, can also be set to parse according to regular rules
         get.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL);
-        // 开始执行一些语句并打印结果
+        // Start executing some statements and printing the results
         System.out.println(get.run("use zhao show"));
         System.out.println(get.run("use zhao show_list"));
     }
 
     private static Syntax getSyntax() {
-        // 准备一个变量容器
+        // Prepare a variable container
         ArrayList<Object> arrayList = new ArrayList<>();
-        // 开始构建 具有变量保存功能的语法树
+        // Start building a syntax tree with variable saving function
         return SaveParam.create(
                 "use", arrayList,
                 SaveParam.create(
                         Syntax.WILDCARD, arrayList,
-                        // 设置 use [param] show 命令的执行器
+                        // Set the executor of the use [param] show command
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
                                 return "show " + arrayList.get(0);
                             }
                         },
-                        // 设置 use [param] rm 命令的执行器
+                        // Set the executor of the use [param] rm command
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
-                                return arrayList.clone();
+                                return arrayList;
                             }
                         }
                 )
@@ -274,7 +287,7 @@ public class MAIN {
         );
         // Instantiate a callback class and load the echo command object into the callback function class
         final SyntaxCallback syntaxCallback = CommandCallback.create(
-                // Firstly, provide the command parsing mode string, where we split it with spaces
+                // Firstly, provide the command parsing mode string, where we get it with spaces
                 " ",
                 // Then we provide parameter objects
                 echo
@@ -316,17 +329,17 @@ import zhao.gravel.grammar.core.CommandCallback;
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 获取到 SQL查询 语法对象 并设置 表 与 where子句的回调函数
+        // Obtain the SQL query syntax object and set the callback function for the table and where clause
         final Syntax instance = BuiltInGrammar.SQL_SELECT.get(
                 arrayList -> "当前位于表处理函数 " + arrayList,
                 arrayList -> "当前位于where子句处理函数 " + arrayList
         );
-        // 装载到回调器
+        // Load to callback
         final CommandCallback sql = CommandCallback.createGet(
                 " ",
                 instance
         );
-        // 在回调器中执行命令
+        // Executing commands in a callback
         System.out.println(sql.run("select * from zhao;"));
         System.out.println(sql.run("select * from zhao where age=20;"));
         System.out.println(sql);

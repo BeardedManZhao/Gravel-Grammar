@@ -21,13 +21,12 @@ public interface Parser {
      * <p>
      * Split a grammar statement according to the specified matching pattern.
      *
-     * @param grammar 需要被拆分的字符串。
+     * @param grammar 需要被get的字符串。
      *                <p>
-     *                The string that needs to be split.
+     *                The string that needs to get.
      * @return 拆分之后会返回字符串的许多子串。
      * <p>
      * After splitting, many substrings of the string will be returned.
      */
-    String[] split(String grammar);
-
+    String[] get(String grammar);
 }
