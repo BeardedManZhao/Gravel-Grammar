@@ -1,84 +1,59 @@
 package zhao.gravel.grammar;
 
 import zhao.gravel.grammar.command.ActuatorParam;
-import zhao.gravel.grammar.command.GrammarParam;
+import zhao.gravel.grammar.command.SaveParam;
 import zhao.gravel.grammar.command.Syntax;
 import zhao.gravel.grammar.core.CommandCallback;
-import zhao.gravel.grammar.core.SyntaxCallback;
+import zhao.gravel.grammar.core.model.AnalyticalModel;
+
+import java.util.ArrayList;
 
 /**
  * @author zhao
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 构建第一个命令解析器第一层
-        final Syntax echo = GrammarParam.create(
-                "echo",
-                // 构建命令解析器第二层的第一个分支
-                GrammarParam.create(
-                        "zhao1",
-                        // 构建命令解析器第三层 由于是最后一层，因此我们直接使用执行器
-                        new ActuatorParam("name") {
+        // 实例化一个语法对象的第一层
+        final Syntax syntax = getSyntax();
+        // 创建一个回调器
+        final CommandCallback get = CommandCallback.createGet(
+                // 设置语法器在解析命令的时候使用的匹配模式
+                "\\s+",
+                // 将语法树提供给回调器
+                syntax
+        );
+        // 设置回调器的解析模式 TODO 设置为按照字符串解析 这也是默认的解析模式
+        get.setAnalyticalModel(AnalyticalModel.CHARACTER_PATTERN);
+        // TODO 当然，也可以设置为按照正则解析
+        get.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL);
+        // 开始执行一些语句并打印结果
+        System.out.println(get.run("use zhao show"));
+        System.out.println(get.run("use zhao show_list"));
+    }
+
+    private static Syntax getSyntax() {
+        // 准备一个变量容器
+        ArrayList<Object> arrayList = new ArrayList<>();
+        // 开始构建 具有变量保存功能的语法树
+        return SaveParam.create(
+                "use", arrayList,
+                SaveParam.create(
+                        Syntax.WILDCARD, arrayList,
+                        // 设置 use [param] show 命令的执行器
+                        new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "zhao的名字是赵凌宇";
+                                return "show " + arrayList.get(0);
                             }
                         },
-                        new ActuatorParam("age") {
+                        // 设置 use [param] rm 命令的执行器
+                        new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
-                                return "zhao的年龄是20岁";
+                                return arrayList.clone();
                             }
                         }
-                ),
-                // 在这里是第二层的另一个分支 直接添加执行器
-                new ActuatorParam("zhao") {
-                    @Override
-                    public Object run() {
-                        return "zhao";
-                    }
-                }
+                )
         );
-        // 构建第二个命令解析器第一层
-        final Syntax look = GrammarParam.create(
-                "look",
-                // 构建命令解析器第二层的第一个分支
-                GrammarParam.create(
-                        "zhao1",
-                        // 构建命令解析器第三层 由于是最后一层，因此我们直接使用执行器
-                        new ActuatorParam("name") {
-                            @Override
-                            public Object run() {
-                                return "zhao的名字是赵凌宇";
-                            }
-                        },
-                        new ActuatorParam("age") {
-                            @Override
-                            public Object run() {
-                                return "zhao的年龄是20岁";
-                            }
-                        }
-                ),
-                // 在这里是第二层的另一个分支 直接添加执行器
-                new ActuatorParam("zhao") {
-                    @Override
-                    public Object run() {
-                        return "zhao";
-                    }
-                }
-        );
-        // 实例化一个回调类并将 echo 命令对象装载给回调函数类
-        final SyntaxCallback syntaxCallback = CommandCallback.create(
-                // 首先提供命令解析模式字符串，在这里我们以空格做拆分
-                " ",
-                // 然后我们提供参数对象
-                look, echo
-        );
-        // 开始运行命令
-        System.out.println(syntaxCallback.run("echo [zhao] name"));
-        System.out.println(syntaxCallback.run("echo [zhao] age"));
-        System.out.println(syntaxCallback.run("echo zhao"));
-        // 打印语法树的结构图代码 用于查看当前所包含的语法树
-        System.out.println(syntaxCallback);
     }
 }

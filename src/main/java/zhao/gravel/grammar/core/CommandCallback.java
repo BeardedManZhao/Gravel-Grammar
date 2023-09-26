@@ -1,15 +1,13 @@
 package zhao.gravel.grammar.core;
 
-import zhao.gravel.grammar.StreamString;
 import zhao.gravel.grammar.command.ActuatorParam;
+import zhao.gravel.grammar.command.GrammarParam;
 import zhao.gravel.grammar.command.Syntax;
 import zhao.gravel.grammar.core.model.AnalyticalModel;
 import zhao.gravel.grammar.core.model.Parser;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 import static zhao.gravel.grammar.command.NotFindParam.NOT_FIND;
 
@@ -21,11 +19,8 @@ import static zhao.gravel.grammar.command.NotFindParam.NOT_FIND;
  *
  * @author zhao
  */
-public class CommandCallback extends StreamString implements SyntaxCallback, Syntax {
+public class CommandCallback extends GrammarParam implements SyntaxCallback {
 
-    protected final HashMap<String, Syntax> allSyntaxTree;
-    protected final String patternStr;
-    private final int hash;
     protected Parser parser;
 
     /**
@@ -34,10 +29,8 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      * @param pattern 匹配模式字符串
      * @param syntax  所有的语法树对象
      */
-    protected CommandCallback(String pattern, HashMap<String, Syntax> syntax) {
-        this.allSyntaxTree = syntax;
-        this.patternStr = pattern;
-        hash = this.hashCode();
+    protected CommandCallback(String pattern, Syntax... syntax) {
+        super(pattern, syntax);
     }
 
     /**
@@ -47,14 +40,16 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      * @param syntax  语法对象，一般情况下此应该是一个语法树，能够按照树的方式来进行识别操作
      * @return 具有指定解析模式以及指定的语法的回调函数器对象。
      */
-    public static SyntaxCallback create(String pattern, Syntax... syntax) {
-        final HashMap<String, Syntax> hashMap = new HashMap<>();
-        for (Syntax syntax1 : syntax) {
-            hashMap.put(syntax1.getSyntaxName(), syntax1);
-        }
-        final CommandCallback commandCallback = new CommandCallback(pattern, hashMap);
+    public static CommandCallback createGet(String pattern, Syntax... syntax) {
+        final CommandCallback commandCallback = new CommandCallback(pattern, syntax);
         commandCallback.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL);
         return commandCallback;
+    }
+
+    public static void clearVariable(Syntax syntax) {
+        if (syntax != null) {
+            syntax.clearVariable();
+        }
     }
 
     /**
@@ -67,7 +62,7 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      */
     @Override
     public void setAnalyticalModel(AnalyticalModel analyticalModel) {
-        this.parser = analyticalModel.getParser(this.patternStr);
+        this.parser = analyticalModel.getParser(super.getSyntaxName());
     }
 
     /**
@@ -101,25 +96,40 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      */
     @Override
     public Object run(String... grammar) {
+        final Syntax first = grammar.length > 0 ? this.get(grammar[0]) : null;
         Syntax now = this;
-        for (String s : grammar) {
-            // 获取语法
+        final int lastIndex = grammar.length - 1;
+        for (int i = 0, grammarLength = grammar.length; i < grammarLength; i++) {
+            // TODO 开始调试 假设 now=where s=where的C
+            String s = grammar[i];
+            // 获取语法 TODO where的C
             final Syntax syntax = now.get(s);
-            // 判断是不是null
+            // 判断是不是null TODO 不是
             if (syntax == null) {
                 break;
             } else {
+                // TODO 更新 now 就是 whereC 的语法
                 now = syntax;
             }
             // 判断是否需要执行
             if (now instanceof ActuatorParam) {
-                // 执行
-                return ((ActuatorParam) now).run();
+                // 如果需要执行就判断是否有子语句，没有就执行
+                final int nextIndex = i + 1;
+                if (i == lastIndex) {
+                    final Object run = ((ActuatorParam) now).run();
+                    clearVariable(first);
+                    return run;
+                }
+                final Syntax syntax1 = now.get(grammar[nextIndex]);
+                if (syntax1 == null) {
+                    final Object run = ((ActuatorParam) now).run();
+                    clearVariable(first);
+                    return run;
+                }
             }
-            // 其它情况就不执行
         }
         // 如果到了最后都没有找到执行器，就代表没找到
-        return NOT_FIND.get(grammar[grammar.length - 1]);
+        return NOT_FIND.get(grammar[lastIndex]);
     }
 
     /**
@@ -129,7 +139,7 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      */
     @Override
     public void toString(PrintWriter printWriter, boolean isLR) {
-        printWriter.append("graph ").println(isLR ? "LR" : "BT");
+        printWriter.append("graph ").println(isLR ? "LR" : "BR");
         this.toString(printWriter);
     }
 
@@ -144,70 +154,9 @@ public class CommandCallback extends StreamString implements SyntaxCallback, Syn
      */
     @Override
     public void toString(PrintWriter outStream) {
-        for (Syntax value : this.allSyntaxTree.values()) {
+        for (Syntax value : super.syntaxHashMap.values()) {
             value.toString(outStream);
         }
-    }
-
-    /**
-     * @return hashcode
-     */
-    @Override
-    public int getHashId() {
-        return this.hash;
-    }
-
-    /**
-     * @return 当前语法对象 对应的参数名称。
-     */
-    @Override
-    public String getSyntaxName() {
-        return this.patternStr;
-    }
-
-    /**
-     * 向此语法对象添加子语法树对象，子语法树将可以被此语法树调用。
-     * <p>
-     * Add a sub syntax tree object to this syntax object, and the sub syntax tree will be called by this syntax tree.
-     *
-     * @param syntax 需要被添加的子语法树对象。
-     *               <p>
-     *               The sub syntax tree object that needs to be added.
-     */
-    @Override
-    public void addSubSyntax(Syntax syntax) {
-        this.allSyntaxTree.put(syntax.getSyntaxName(), syntax);
-    }
-
-    /**
-     * 向此语法对象添加子语法树对象，子语法树将可以被此语法树调用。
-     * <p>
-     * Add a sub syntax tree object to this syntax object, and the sub syntax tree will be called by this syntax tree.
-     *
-     * @param allSyntax 需要被添加的子语法树对象。
-     *                  <p>
-     *                  The sub syntax tree object that needs to be added.
-     */
-    @Override
-    public void addSubSyntax(Map<String, Syntax> allSyntax) {
-        this.allSyntaxTree.putAll(allSyntax);
-    }
-
-    /**
-     * 根据 syntaxName 获取到对应的 syntax 对象。
-     * <p>
-     * Obtain the corresponding syntax object based on syntax Name.
-     *
-     * @param syntaxName 需要获取的对象对应的名称，一般来说这里也就是命令的某个参数。
-     *                   <p>
-     *                   The name of the object that needs to be obtained, which is generally a parameter of the command.
-     * @return syntaxName 对应的 syntax 对象。
-     * <p>
-     * The syntax object corresponding to syntax Name.
-     */
-    @Override
-    public Syntax get(String syntaxName) {
-        return this.allSyntaxTree.getOrDefault(syntaxName, NOT_FIND);
     }
 
     @Override

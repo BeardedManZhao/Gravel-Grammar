@@ -13,9 +13,10 @@ import java.util.Map;
  */
 public class GrammarParam extends StreamString implements Syntax {
 
-    private final HashMap<String, Syntax> syntaxHashMap;
+    protected final HashMap<String, Syntax> syntaxHashMap;
     private final String name;
     private final int hash;
+    protected Syntax defaultSyntax;
 
     protected GrammarParam(String name, Syntax... allSyntax) {
         this.name = name;
@@ -23,6 +24,7 @@ public class GrammarParam extends StreamString implements Syntax {
         for (Syntax syntax : allSyntax) {
             syntaxHashMap.put(syntax.getSyntaxName(), syntax);
         }
+        this.defaultSyntax = this.syntaxHashMap.getOrDefault(NotFindParam.WILDCARD, NotFindParam.NOT_FIND);
         hash = this.hashCode();
     }
 
@@ -58,6 +60,9 @@ public class GrammarParam extends StreamString implements Syntax {
      */
     @Override
     public void addSubSyntax(Syntax syntax) {
+        if (WILDCARD.equals(syntax.getSyntaxName())) {
+            this.defaultSyntax = syntax;
+        }
         this.syntaxHashMap.put(syntax.getSyntaxName(), syntax);
     }
 
@@ -73,6 +78,10 @@ public class GrammarParam extends StreamString implements Syntax {
     @Override
     public void addSubSyntax(Map<String, Syntax> allSyntax) {
         this.syntaxHashMap.putAll(allSyntax);
+        final Syntax syntax = this.get(WILDCARD);
+        if (syntax != null) {
+            this.defaultSyntax = syntax;
+        }
     }
 
     /**
@@ -89,7 +98,23 @@ public class GrammarParam extends StreamString implements Syntax {
      */
     @Override
     public Syntax get(String syntaxName) {
-        return this.syntaxHashMap.get(syntaxName);
+        final Syntax syntax = this.syntaxHashMap.get(syntaxName);
+        if (syntax != null) {
+            return syntax;
+        } else {
+            return this.getDefault(syntaxName);
+        }
+    }
+
+    /**
+     * 获取到默认的语法对象，当无法获取到子语法的时候，将会直接调用此函数，并将函数返回的语法对象做为下一个执行。
+     *
+     * @param syntaxName 语法名称。
+     * @return 默认的子语法对象。
+     */
+    @Override
+    public Syntax getDefault(String syntaxName) {
+        return this.defaultSyntax;
     }
 
     /**
@@ -128,5 +153,17 @@ public class GrammarParam extends StreamString implements Syntax {
         return s;
     }
 
-
+    /**
+     * 将 当前语法对象以及其子语法对象中用于变量存储的 list 对象 清空。
+     * <p>
+     * Clear the list object used for variable storage in the current syntax object and its child syntax objects
+     */
+    @Override
+    public void clearVariable() {
+        for (Syntax value : this.syntaxHashMap.values()) {
+            if (value instanceof SaveParam) {
+                value.clearVariable();
+            }
+        }
+    }
 }

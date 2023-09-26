@@ -11,6 +11,11 @@ import java.util.Map;
 public interface Syntax {
 
     /**
+     * 统配符号，以该符号做为参数名称的将会被做为默认的参数对象。
+     */
+    String WILDCARD = "^_^";
+
+    /**
      * @return 当前语法对象 对应的参数名称。
      */
     String getSyntaxName();
@@ -52,6 +57,14 @@ public interface Syntax {
     Syntax get(String syntaxName);
 
     /**
+     * 获取到默认的语法对象，当无法获取到子语法的时候，将会直接调用此函数，并将函数返回的语法对象做为下一个执行。
+     *
+     * @param syntaxName 语法名称。
+     * @return 默认的子语法对象。
+     */
+    Syntax getDefault(String syntaxName);
+
+    /**
      * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
      * <p>
      * Draw a graph of all sub syntax trees contained in the current grammar in mermaid format.
@@ -66,4 +79,12 @@ public interface Syntax {
      * @return hashcode
      */
     int getHashId();
+
+    /**
+     * 将 当前语法对象以及其子语法对象中用于变量存储的 list 对象 清空。
+     * <p>
+     * Clear the list object used for variable storage in the current syntax object and its child syntax objects
+     */
+    void clearVariable();
+
 }
