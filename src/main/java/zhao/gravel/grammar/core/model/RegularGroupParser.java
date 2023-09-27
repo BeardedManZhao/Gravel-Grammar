@@ -75,6 +75,7 @@ public class RegularGroupParser extends RegularParser {
      * @param groupNum 设置当前正则匹配的组编号
      *                 <p>
      *                 Set the group number for the current regular match
+     * @return 本对象的链式调用
      */
     public RegularGroupParser setGroupNum(int groupNum) {
         this.groupNum = groupNum;

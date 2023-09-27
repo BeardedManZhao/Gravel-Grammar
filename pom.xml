@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.BeardedManZhao</groupId>
     <artifactId>gravel-Grammar</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.20230927</version>
     <packaging>jar</packaging>
     <name>gravel-Grammar</name>
     <description>gravel-Grammar-java</description>

@@ -17,6 +17,7 @@ public class GrammarParam extends StreamString implements Syntax {
     private final String name;
     protected Syntax defaultSyntax;
     private int hash;
+    private boolean randomHash;
 
     protected GrammarParam(String name, Syntax... allSyntax) {
         this.name = name;
@@ -24,6 +25,7 @@ public class GrammarParam extends StreamString implements Syntax {
         for (Syntax syntax : allSyntax) {
             syntaxHashMap.put(syntax.getSyntaxName(), syntax);
         }
+        this.randomHash = false;
         this.defaultSyntax = this.syntaxHashMap.getOrDefault(NotFindParam.WILDCARD, NotFindParam.NOT_FIND);
         hash = this.hashCode();
     }
@@ -127,7 +129,7 @@ public class GrammarParam extends StreamString implements Syntax {
     @Override
     public void toString(PrintWriter outStream) {
         for (Syntax value : this.syntaxHashMap.values()) {
-            outStream.append(String.valueOf(this.hash)).append('[').append(this.getSyntaxName()).append(']')
+            outStream.append(String.valueOf(this.getHashId())).append('[').append(this.getSyntaxName()).append(']')
                     .append(" --> ")
                     .append(String.valueOf(value.getHashId())).append('[').append(value.getSyntaxName()).println(']');
             value.toString(outStream);
@@ -135,11 +137,27 @@ public class GrammarParam extends StreamString implements Syntax {
     }
 
     /**
+     * @return 如果希望随机hash数值展示的不是真正的 hash 而是一个随机数值，这里返回的为 true；
+     */
+    @Override
+    public boolean isRandomHash() {
+        return this.randomHash;
+    }
+
+    /**
+     * @param isRandomHash 如果希望随机hash数值展示的不是真正的 hash 而是一个随机数值，这里应设置为 true；
+     */
+    @Override
+    public void setRandomHash(boolean isRandomHash) {
+        this.randomHash = isRandomHash;
+    }
+
+    /**
      * @return hashcode
      */
     @Override
-    public int getHashId() {
-        return this.hash;
+    public double getHashId() {
+        return this.isRandomHash() ? Math.random() : this.hash;
     }
 
     @Override

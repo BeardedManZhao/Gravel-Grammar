@@ -2,7 +2,7 @@ package zhao.gravel.grammar.command;
 
 import zhao.utils.transformation.Transformation;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * 提供给执行器的函数抽象类，其接收一个list对象，并输出一个任意对象；输入的list对象代表的就是在解析函数的过程中产生的所有变量数据的集合，我们可以在这里进行统一的处理。
@@ -11,5 +11,5 @@ import java.util.ArrayList;
  *
  * @author zhao
  */
-public interface ActuatorTF extends Transformation<ArrayList<Object>, Object> {
+public interface ActuatorTF extends Transformation<HashMap<String, Object>, Object> {
 }

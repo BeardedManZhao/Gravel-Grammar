@@ -1,6 +1,6 @@
 package zhao.gravel.grammar.command;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -10,32 +10,32 @@ import java.util.Map;
  */
 public class SaveParam extends GrammarParam {
 
-    protected final ArrayList<Object> arrayList;
+    protected final HashMap<String, Object> hashMap;
 
-    protected SaveParam(String name, ArrayList<Object> arrayList, Syntax... allSyntax) {
+    protected SaveParam(String name, HashMap<String, Object> hashMap, Syntax... allSyntax) {
         super(name, allSyntax);
         for (Syntax syntax : allSyntax) {
             if (syntax instanceof SaveParam) {
-                final ArrayList<Object> arrayList1 = ((SaveParam) syntax).getArrayList();
-                if (arrayList1 != arrayList) {
+                final HashMap<String, Object> hashMap1 = ((SaveParam) syntax).getHashMap();
+                if (hashMap1 != hashMap) {
                     // 内存地址不一样 向子语法中添加保存的元素
-                    arrayList1.addAll(this.getArrayList());
+                    hashMap1.putAll(this.getHashMap());
                 }
             }
         }
-        this.arrayList = arrayList;
+        this.hashMap = hashMap;
     }
 
     /**
-     * 创建出一个语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 arrayList 容器)。
+     * 创建出一个语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
      *
      * @param name      该语法对象对应的参数名称。
-     * @param arrayList 该语法对象用于变量保存操作的容器 (需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 arrayList 容器)。。
-     * @param allSyntax 该语法对象中的所有子语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 arrayList 容器)。
+     * @param hashMap   该语法对象用于变量保存操作的容器 (需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。。
+     * @param allSyntax 该语法对象中的所有子语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
      * @return 语法对象
      */
-    public static Syntax create(String name, ArrayList<Object> arrayList, Syntax... allSyntax) {
-        return new SaveParam(name, arrayList, allSyntax);
+    public static Syntax create(String name, HashMap<String, Object> hashMap, Syntax... allSyntax) {
+        return new SaveParam(name, hashMap, allSyntax);
     }
 
     /**
@@ -46,15 +46,15 @@ public class SaveParam extends GrammarParam {
      * @return 语法对象
      */
     public static Syntax create(String name, Syntax... allSyntax) {
-        return new SaveParam(name, new ArrayList<>(), allSyntax);
+        return new SaveParam(name, new HashMap<>(), allSyntax);
     }
 
     public void save(Object object) {
-        this.arrayList.add(object);
+        this.hashMap.put(this.getSyntaxName(), object);
     }
 
-    public ArrayList<Object> getArrayList() {
-        return this.arrayList;
+    public HashMap<String, Object> getHashMap() {
+        return this.hashMap;
     }
 
     /**
@@ -94,7 +94,7 @@ public class SaveParam extends GrammarParam {
         // 首先判断当前被添加的子语法是否支持变量的保存
         if (syntax instanceof SaveParam) {
             // 支持就直接将当前保存的所有数据提供给下一层
-            ((SaveParam) syntax).arrayList.addAll(this.getArrayList());
+            ((SaveParam) syntax).hashMap.putAll(this.getHashMap());
         }
         super.addSubSyntax(syntax);
     }
@@ -120,7 +120,7 @@ public class SaveParam extends GrammarParam {
      */
     @Override
     public void clearVariable() {
-        this.arrayList.clear();
+        this.hashMap.clear();
         super.clearVariable();
     }
 }

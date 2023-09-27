@@ -1,11 +1,8 @@
 package zhao.gravel.grammar.core;
 
-import zhao.gravel.grammar.command.ActuatorParam;
-import zhao.gravel.grammar.command.ActuatorTF;
-import zhao.gravel.grammar.command.SaveParam;
-import zhao.gravel.grammar.command.Syntax;
+import zhao.gravel.grammar.command.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * 内置语法对象。
@@ -18,38 +15,58 @@ public enum BuiltInGrammar {
      */
     SQL_SELECT {
         /**
-         * @param arrayList  用于存储命令解析过程中需要保存的数据的容器。
+         * @param hashMap  用于存储命令解析过程中需要保存的数据的容器。
          * @param transformation 该语法器执行器层的函数执行逻辑，其输入数据为每层的参数字符串，输出数据可以为null也可以为
          * @return 指定模式下对应的语法对象组件，该组件可以直接被添加到回调器中。
          * <p>
          * The corresponding syntax object component in the specified mode can be directly added to the callback.
          */
         @Override
-        public Syntax get(ArrayList<Object> arrayList, ActuatorTF... transformation) {
-            if (transformation.length < 2) {
-                throw new UnsupportedOperationException("The number of functions you provided is incorrect. The functions you need to provide include [Table Processing Function] and [Where Clause Processing Function]");
-            }
+        public Syntax get(HashMap<String, Object> hashMap, ActuatorTF... transformation) {
 
-
-            /* group by */
-            final Syntax group_by = SaveParam.create(
-                    "group by", arrayList,
-                    new ActuatorParam(Syntax.WILDCARD) {
-                        /**
-                         * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
-                         * <p>
-                         * The execution logic function of the current executor parameter will return an arbitrary data type after execution.
-                         */
+            /* limit */
+            final Syntax limit = SaveParam.create("limit", hashMap,
+                    new ActuatorAliasParam(Syntax.WILDCARD, "offset count") {
                         @Override
                         public Object run() {
-                            return transformation[2].function(arrayList);
+                            BuiltInGrammar.check(transformation, 5, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为4的位置。");
+                            return transformation[4].function(hashMap);
                         }
-                    }
-            );
+                    });
 
+            /* order by */
+            final ActuatorAliasParam orderByC = new ActuatorAliasParam(Syntax.WILDCARD, "Order by clause") {
+                @Override
+                public Object run() {
+                    BuiltInGrammar.check(transformation, 4, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为3的位置。");
+                    return transformation[3].function(hashMap);
+                }
+            };
+            final Syntax order_by = SaveParam.create(
+                    "order by", hashMap,
+                    orderByC
+            );
+            orderByC.addSubSyntax(limit);
+
+            /* group by */
+            final ActuatorAliasParam groupByC = new ActuatorAliasParam(Syntax.WILDCARD, "group by fieldName") {
+                /**
+                 * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
+                 * <p>
+                 * The execution logic function of the current executor parameter will return an arbitrary data type after execution.
+                 */
+                @Override
+                public Object run() {
+                    BuiltInGrammar.check(transformation, 3, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为2的位置。");
+                    return transformation[2].function(hashMap);
+                }
+            };
+            final Syntax group_by = SaveParam.create("group by", hashMap, groupByC);
+            groupByC.addSubSyntax(order_by);
+            groupByC.addSubSyntax(limit);
 
             /* where 子句 */
-            final ActuatorParam whereC = new ActuatorParam(Syntax.WILDCARD) {
+            final ActuatorParam whereC = new ActuatorAliasParam(Syntax.WILDCARD, "Where clause condition") {
 
                 /**
                  * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
@@ -58,39 +75,43 @@ public enum BuiltInGrammar {
                  */
                 @Override
                 public Object run() {
-                    return transformation[1].function(arrayList);
+                    BuiltInGrammar.check(transformation, 2, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为1的位置。");
+                    return transformation[1].function(hashMap);
                 }
             };
-            whereC.addSubSyntax(group_by.clone());
-
-
+            whereC.addSubSyntax(group_by);
+            whereC.addSubSyntax(order_by);
+            whereC.addSubSyntax(limit);
 
             /* table */
-            final ActuatorParam table = new ActuatorParam(Syntax.WILDCARD) {
+            final ActuatorParam table = new ActuatorAliasParam(Syntax.WILDCARD, "table Name") {
+
                 @Override
                 public Object run() {
-                    return transformation[0].function(arrayList);
+                    BuiltInGrammar.check(transformation, 1, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为0的位置。");
+                    return transformation[0].function(hashMap);
                 }
             };
             table.addSubSyntax(
                     SaveParam.create(
-                            "where", arrayList,
+                            "where", hashMap,
                             whereC
                     )
             );
             table.addSubSyntax(group_by);
-
+            table.addSubSyntax(order_by);
+            table.addSubSyntax(limit);
 
             // 首先将 SQL 语法树准备出来 然后直接返回
             return SaveParam.create(
                     "select",
-                    arrayList,
+                    hashMap,
                     SaveParam.create(
                             Syntax.WILDCARD,
-                            arrayList,
+                            hashMap,
                             SaveParam.create(
                                     "from",
-                                    arrayList,
+                                    hashMap,
                                     table
                             )
                     )
@@ -100,7 +121,20 @@ public enum BuiltInGrammar {
 
 
     /**
-     * @param arrayList      用于存储命令解析过程中需要保存的数据的容器。
+     * 检查传递的匿名函数的数量是否正确
+     *
+     * @param actuatorTFS 需要被检查的匿名函数组
+     * @param okLen       正确或预期的数值
+     * @param errorMsg    当检查不满足的时候会返回带有此信息的异常数据。
+     */
+    public static void check(ActuatorTF[] actuatorTFS, int okLen, String errorMsg) {
+        if (actuatorTFS.length < okLen) {
+            throw new UnsupportedOperationException(errorMsg);
+        }
+    }
+
+    /**
+     * @param hashMap        用于存储命令解析过程中需要保存的数据的容器。
      *                       <p>
      *                       A container used to store data that needs to be saved during command parsing.
      * @param transformation 该语法器执行器层的函数执行逻辑，其输入数据为每层的参数字符串，输出数据可以为null也可以为
@@ -108,7 +142,7 @@ public enum BuiltInGrammar {
      * <p>
      * The corresponding syntax object component in the specified mode can be directly added to the callback.
      */
-    public abstract Syntax get(ArrayList<Object> arrayList, ActuatorTF... transformation);
+    public abstract Syntax get(HashMap<String, Object> hashMap, ActuatorTF... transformation);
 
     /**
      * @param transformation 该语法器执行器层的函数执行逻辑，其输入数据为每层的参数字符串，输出数据可以为null也可以为
@@ -117,11 +151,10 @@ public enum BuiltInGrammar {
      * The corresponding syntax object component in the specified mode can be directly added to the callback.
      */
     public Syntax get(ActuatorTF... transformation) {
-        return this.get(new ArrayList<>(), transformation);
+        return this.get(new HashMap<>(), transformation);
     }
 
-    public Syntax get(ArrayList<Object> arrayList) {
-        return this.get(arrayList, new ActuatorTF[0]);
+    public Syntax get(HashMap<String, Object> hashMap) {
+        return this.get(hashMap, new ActuatorTF[0]);
     }
-
 }

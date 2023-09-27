@@ -13,9 +13,11 @@ public class MAIN {
     public static void main(String[] args) {
         // 获取到 SQL查询 语法对象 并设置 表 与 where子句的回调函数
         final Syntax instance = BuiltInGrammar.SQL_SELECT.get(
-                arrayList -> "当前位于表处理函数 " + arrayList,
-                arrayList -> "当前位于where子句处理函数 " + arrayList,
-                arrayList -> "当前位于group by处理函数 " + arrayList
+                hashMap -> "当前位于表处理函数 " + hashMap,
+                hashMap -> "当前位于where子句处理函数 " + hashMap,
+                hashMap -> "当前位于group by处理函数 " + hashMap,
+                hashMap -> "当前位于order by处理函数 " + hashMap,
+                hashMap -> "当前位于  limit 处理函数 " + hashMap
         );
         // 装载到回调器
         final CommandCallback sql = CommandCallback.createGet(
@@ -29,6 +31,7 @@ public class MAIN {
         System.out.println(sql.run("select * from zhao;"));
         System.out.println(sql.run("select * from zhao where age=20;"));
         System.out.println(sql.run("select * from zhao where age=20 group by age;"));
+        System.out.println(sql.run("select * from zhao where age=20 order by age limit 10 20;"));
         System.out.println(sql);
     }
 }

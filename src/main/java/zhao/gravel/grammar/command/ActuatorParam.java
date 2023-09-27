@@ -20,6 +20,15 @@ public abstract class ActuatorParam extends GrammarParam {
     public abstract Object run();
 
     /**
+     * @return 当前执行器对象在 mermaid 图中的名字代码。
+     * <p>
+     * The name code of the current executor object in the mermaid diagram.
+     */
+    protected String getMermaidName() {
+        return this.getHashId() + "([" + this.getSyntaxName() + "])";
+    }
+
+    /**
      * 将当前回调器中包含的所有子语法树的图以 mermaid 的方式绘制出来。
      * <p>
      * Draw a graph of all sub syntax trees contained in the current grammar in mermaid format.
@@ -32,10 +41,8 @@ public abstract class ActuatorParam extends GrammarParam {
     public void toString(PrintWriter outStream) {
         super.toString(outStream);
         outStream
-                .append(String.valueOf(this.getHashId()))
-                .append("([")
-                .append(this.getSyntaxName())
-                .append("]) --> ")
+                .append(this.getMermaidName())
+                .append(" --> ")
                 .append(String.valueOf(Math.random()))
                 .println("[runCommand!!!!]");
 

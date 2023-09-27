@@ -13,6 +13,13 @@ dependencies below, and used as described.
 
 ```xml
 
+<dependencies>
+    <dependency>
+        <groupId>io.github.BeardedManZhao</groupId>
+        <artifactId>gravel-Grammar</artifactId>
+        <version>1.0.20230927</version>
+    </dependency>
+</dependencies>
 ```
 
 ## module
@@ -113,7 +120,7 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // Prepare a variable container
-        ArrayList<Object> arrayList = new ArrayList<>();
+        HashMap<String, Object> arrayList = new ArrayList<>();
         // Start building a syntax tree with variable saving function
         return SaveParam.create(
                 "use", arrayList,
@@ -123,7 +130,7 @@ public class MAIN {
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + arrayList.get(0);
+                                return "show " + arrayList.get("show");
                             }
                         },
                         // Set the executor of the use [param] rm command
@@ -167,6 +174,7 @@ import zhao.gravel.grammar.core.CommandCallback;
 import zhao.gravel.grammar.core.model.AnalyticalModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author zhao
@@ -193,7 +201,7 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // Prepare a variable container
-        ArrayList<Object> arrayList = new ArrayList<>();
+        HashMap<String, Object> arrayList = new ArrayList<>();
         // Start building a syntax tree with variable saving function
         return SaveParam.create(
                 "use", arrayList,
@@ -203,7 +211,7 @@ public class MAIN {
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + arrayList.get(0);
+                                return "show " + arrayList.get("show");
                             }
                         },
                         // Set the executor of the use [param] rm command
@@ -331,45 +339,141 @@ public class MAIN {
     public static void main(String[] args) {
         // Obtain the SQL query syntax object and set the callback function for the table and where clause
         final Syntax instance = BuiltInGrammar.SQL_SELECT.get(
-                arrayList -> "当前位于表处理函数 " + arrayList,
-                arrayList -> "当前位于where子句处理函数 " + arrayList
+                hashMap -> "当前位于表处理函数 " + hashMap,
+                hashMap -> "当前位于where子句处理函数 " + hashMap,
+                hashMap -> "当前位于group by处理函数 " + hashMap,
+                hashMap -> "当前位于order by处理函数 " + hashMap,
+                hashMap -> "当前位于  limit 处理函数 " + hashMap
         );
         // Load to callback
         final CommandCallback sql = CommandCallback.createGet(
-                " ",
+                // Set the type of regular matching expression for SQL parsing, where it can be REGULAR_ MODEL_ 1 Parsed mode
+                BuiltInReg.SQL_EXTRACTION_REGULAR_MODEL_1,
                 instance
         );
+        // Set the parsing mode to regular extraction of group 1 data
+        sql.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL_1);
         // Executing commands in a callback
         System.out.println(sql.run("select * from zhao;"));
         System.out.println(sql.run("select * from zhao where age=20;"));
+        System.out.println(sql.run("select * from zhao where age=20 group by age;"));
+        System.out.println(sql.run("select * from zhao where age=20 order by age limit 10 20;"));
         System.out.println(sql);
     }
 }
 
 ```
 
-下面是运行结果，可以看到其中成功地处理了两个命令并将对应的结果返回了出来，而在我们打印了回调器的时候，实际上是将回调器中的语法树结构图的代码打印了出来。
+The following are the running results, where we can see that two commands were successfully processed and the
+corresponding results were returned. When we printed the callback, we actually printed the code of the syntax tree
+structure diagram in the callback.
 
 ```
-当前位于表处理函数 [*, zhao;]
-当前位于where子句处理函数 [*, zhao, age=20;]
+当前位于表处理函数 {select=*, from=zhao;}
+当前位于where子句处理函数 {select=*, from=zhao, where=age=20;}
+当前位于group by处理函数 {select=*, group by=age;, from=zhao, where=age=20}
+当前位于  limit 处理函数 {select=*, order by=age, limit=10 20;, from=zhao, where=age=20}
 graph BR
-434091818[select] --> 1468177767[^_^]
-1468177767[^_^] --> 1531333864[from]
-1531333864[from] --> 1360767589[^_^]
-1360767589[^_^] --> 818403870[where]
-818403870[where] --> 920011586[^_^]
-920011586([^_^]) --> 0.31244290887439063[runCommand!!!!]
-1360767589([^_^]) --> 0.9466675124489518[runCommand!!!!]
+1.740000325E9[select] --> 9.32607259E8[^_^]
+9.32607259E8[^_^] --> 1.57627094E8[from]
+1.57627094E8[from] --> 7.18231523E8[^_^]
+7.18231523E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.5627176415604082[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.19879988313180497[runCommand!!!!]
+7.18231523E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.8433204212510476[runCommand!!!!]
+7.18231523E8[^_^] --> 1.349414238E9[where]
+1.349414238E9[where] --> 7.62218386E8[^_^]
+7.62218386E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.12488731309599099[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.38751006766773[runCommand!!!!]
+7.62218386E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.405136527007931[runCommand!!!!]
+7.62218386E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.3493721134215404[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.18895448365909584[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.03925965668096232[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8819858478815389[runCommand!!!!]
+7.62218386E8([Where clause condition]) --> 0.9041228337851761[runCommand!!!!]
+7.18231523E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.9798902184562694[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.40897488489984957[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.02504592954225726[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8615177648386168[runCommand!!!!]
+7.18231523E8([table Name]) --> 0.1773248339953667[runCommand!!!!]
 ```
 
 ```mermaid
 graph BR
-434091818[select] --> 1468177767[^_^]
-1468177767[^_^] --> 1531333864[from]
-1531333864[from] --> 1360767589[^_^]
-1360767589[^_^] --> 818403870[where]
-818403870[where] --> 920011586[^_^]
-920011586([^_^]) --> 0.31244290887439063[runCommand!!!!]
-1360767589([^_^]) --> 0.9466675124489518[runCommand!!!!]
+1.740000325E9[select] --> 9.32607259E8[^_^]
+9.32607259E8[^_^] --> 1.57627094E8[from]
+1.57627094E8[from] --> 7.18231523E8[^_^]
+7.18231523E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.5627176415604082[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.19879988313180497[runCommand!!!!]
+7.18231523E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.8433204212510476[runCommand!!!!]
+7.18231523E8[^_^] --> 1.349414238E9[where]
+1.349414238E9[where] --> 7.62218386E8[^_^]
+7.62218386E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.12488731309599099[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.38751006766773[runCommand!!!!]
+7.62218386E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.405136527007931[runCommand!!!!]
+7.62218386E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.3493721134215404[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.18895448365909584[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.03925965668096232[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8819858478815389[runCommand!!!!]
+7.62218386E8([Where clause condition]) --> 0.9041228337851761[runCommand!!!!]
+7.18231523E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.9798902184562694[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.40897488489984957[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.02504592954225726[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8615177648386168[runCommand!!!!]
+7.18231523E8([table Name]) --> 0.1773248339953667[runCommand!!!!]
 ```

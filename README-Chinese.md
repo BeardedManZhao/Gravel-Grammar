@@ -9,7 +9,13 @@
 该框架已上传到 maven 仓库，可以通过如下的 maven 依赖将框架导入到项目中，并按照介绍来使用此框架。
 
 ```xml
-
+    <dependencies>
+        <dependency>
+            <groupId>io.github.BeardedManZhao</groupId>
+            <artifactId>gravel-Grammar</artifactId>
+            <version>1.0.20230927</version>
+        </dependency>
+    </dependencies>
 ```
 
 ## 模块
@@ -105,24 +111,24 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // 准备一个变量容器
-        ArrayList<Object> arrayList = new ArrayList<>();
+        HashMap<String, Object> hashMap = new ArrayList<>();
         // 开始构建 具有变量保存功能的语法树
         return SaveParam.create(
-                "use", arrayList,
+                "use", hashMap,
                 SaveParam.create(
-                        Syntax.WILDCARD, arrayList,
+                        Syntax.WILDCARD, hashMap,
                         // 设置 use [param] show 命令的执行器
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + arrayList.get(0);
+                                return "show " + hashMap.get("show");
                             }
                         },
                         // 设置 use [param] rm 命令的执行器
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
-                                return arrayList;
+                                return hashMap.clone();
                             }
                         }
                 )
@@ -156,6 +162,7 @@ import zhao.gravel.grammar.core.CommandCallback;
 import zhao.gravel.grammar.core.model.AnalyticalModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author zhao
@@ -182,24 +189,24 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // 准备一个变量容器
-        ArrayList<Object> arrayList = new ArrayList<>();
+        HashMap<String, Object> hashMap = new ArrayList<>();
         // 开始构建 具有变量保存功能的语法树
         return SaveParam.create(
-                "use", arrayList,
+                "use", hashMap,
                 SaveParam.create(
-                        Syntax.WILDCARD, arrayList,
+                        Syntax.WILDCARD, hashMap,
                         // 设置 use [param] show 命令的执行器
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + arrayList.get(0);
+                                return "show " + hashMap.get("show");
                             }
                         },
                         // 设置 use [param] rm 命令的执行器
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
-                                return arrayList.clone();
+                                return hashMap.clone();
                             }
                         }
                 )
@@ -313,7 +320,9 @@ package zhao.gravel.grammar;
 
 import zhao.gravel.grammar.command.Syntax;
 import zhao.gravel.grammar.core.BuiltInGrammar;
+import zhao.gravel.grammar.core.BuiltInReg;
 import zhao.gravel.grammar.core.CommandCallback;
+import zhao.gravel.grammar.core.model.AnalyticalModel;
 
 /**
  * @author zhao
@@ -322,45 +331,140 @@ public class MAIN {
     public static void main(String[] args) {
         // 获取到 SQL查询 语法对象 并设置 表 与 where子句的回调函数
         final Syntax instance = BuiltInGrammar.SQL_SELECT.get(
-                arrayList -> "当前位于表处理函数 " + arrayList,
-                arrayList -> "当前位于where子句处理函数 " + arrayList
+                hashMap -> "当前位于表处理函数 " + hashMap,
+                hashMap -> "当前位于where子句处理函数 " + hashMap,
+                hashMap -> "当前位于group by处理函数 " + hashMap,
+                hashMap -> "当前位于order by处理函数 " + hashMap,
+                hashMap -> "当前位于  limit 处理函数 " + hashMap
         );
         // 装载到回调器
         final CommandCallback sql = CommandCallback.createGet(
-                " ",
+                // 设置 SQL解析 的正则匹配表达式类型，在这里使用的是能够被 REGULAR_MODEL_1 解析的模式
+                BuiltInReg.SQL_EXTRACTION_REGULAR_MODEL_1,
                 instance
         );
+        // 设置解析模式为 正则提取1号组数据
+        sql.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL_1);
         // 在回调器中执行命令
         System.out.println(sql.run("select * from zhao;"));
         System.out.println(sql.run("select * from zhao where age=20;"));
+        System.out.println(sql.run("select * from zhao where age=20 group by age;"));
+        System.out.println(sql.run("select * from zhao where age=20 order by age limit 10 20;"));
         System.out.println(sql);
     }
 }
+
 
 ```
 
 下面是运行结果，可以看到其中成功地处理了两个命令并将对应的结果返回了出来，而在我们打印了回调器的时候，实际上是将回调器中的语法树结构图的代码打印了出来。
 
 ```
-当前位于表处理函数 [*, zhao;]
-当前位于where子句处理函数 [*, zhao, age=20;]
+当前位于表处理函数 {select=*, from=zhao;}
+当前位于where子句处理函数 {select=*, from=zhao, where=age=20;}
+当前位于group by处理函数 {select=*, group by=age;, from=zhao, where=age=20}
+当前位于  limit 处理函数 {select=*, order by=age, limit=10 20;, from=zhao, where=age=20}
 graph BR
-434091818[select] --> 1468177767[^_^]
-1468177767[^_^] --> 1531333864[from]
-1531333864[from] --> 1360767589[^_^]
-1360767589[^_^] --> 818403870[where]
-818403870[where] --> 920011586[^_^]
-920011586([^_^]) --> 0.31244290887439063[runCommand!!!!]
-1360767589([^_^]) --> 0.9466675124489518[runCommand!!!!]
+1.740000325E9[select] --> 9.32607259E8[^_^]
+9.32607259E8[^_^] --> 1.57627094E8[from]
+1.57627094E8[from] --> 7.18231523E8[^_^]
+7.18231523E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.5627176415604082[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.19879988313180497[runCommand!!!!]
+7.18231523E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.8433204212510476[runCommand!!!!]
+7.18231523E8[^_^] --> 1.349414238E9[where]
+1.349414238E9[where] --> 7.62218386E8[^_^]
+7.62218386E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.12488731309599099[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.38751006766773[runCommand!!!!]
+7.62218386E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.405136527007931[runCommand!!!!]
+7.62218386E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.3493721134215404[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.18895448365909584[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.03925965668096232[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8819858478815389[runCommand!!!!]
+7.62218386E8([Where clause condition]) --> 0.9041228337851761[runCommand!!!!]
+7.18231523E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.9798902184562694[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.40897488489984957[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.02504592954225726[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8615177648386168[runCommand!!!!]
+7.18231523E8([table Name]) --> 0.1773248339953667[runCommand!!!!]
 ```
 
 ```mermaid
 graph BR
-434091818[select] --> 1468177767[^_^]
-1468177767[^_^] --> 1531333864[from]
-1531333864[from] --> 1360767589[^_^]
-1360767589[^_^] --> 818403870[where]
-818403870[where] --> 920011586[^_^]
-920011586([^_^]) --> 0.31244290887439063[runCommand!!!!]
-1360767589([^_^]) --> 0.9466675124489518[runCommand!!!!]
+1.740000325E9[select] --> 9.32607259E8[^_^]
+9.32607259E8[^_^] --> 1.57627094E8[from]
+1.57627094E8[from] --> 7.18231523E8[^_^]
+7.18231523E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.5627176415604082[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.19879988313180497[runCommand!!!!]
+7.18231523E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.8433204212510476[runCommand!!!!]
+7.18231523E8[^_^] --> 1.349414238E9[where]
+1.349414238E9[where] --> 7.62218386E8[^_^]
+7.62218386E8[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.12488731309599099[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.38751006766773[runCommand!!!!]
+7.62218386E8[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.405136527007931[runCommand!!!!]
+7.62218386E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.3493721134215404[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.18895448365909584[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.03925965668096232[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8819858478815389[runCommand!!!!]
+7.62218386E8([Where clause condition]) --> 0.9041228337851761[runCommand!!!!]
+7.18231523E8[^_^] --> 1.873653341E9[group by]
+1.873653341E9[group by] --> 1.908316405E9[^_^]
+1.908316405E9[^_^] --> 1.504109395E9[order by]
+1.504109395E9[order by] --> 1.025799482E9[^_^]
+1.025799482E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.9798902184562694[runCommand!!!!]
+1.025799482E9([Order by clause]) --> 0.40897488489984957[runCommand!!!!]
+1.908316405E9[^_^] --> 3.98887205E8[limit]
+3.98887205E8[limit] --> 1.468177767E9[^_^]
+1.468177767E9([offset count]) --> 0.02504592954225726[runCommand!!!!]
+1.908316405E9([group by fieldName]) --> 0.8615177648386168[runCommand!!!!]
+7.18231523E8([table Name]) --> 0.1773248339953667[runCommand!!!!]
 ```

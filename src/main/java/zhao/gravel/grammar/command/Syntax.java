@@ -76,9 +76,23 @@ public interface Syntax extends Cloneable {
     void toString(PrintWriter outStream);
 
     /**
+     * @return 如果希望随机hash数值展示的不是真正的 hash 而是一个随机数值，这里返回的为 true；
+     * <p>
+     * If you want the random hash value to display a random value instead of a real hash, the return here is true;
+     */
+    boolean isRandomHash();
+
+    /**
+     * @param isRandomHash 如果希望随机hash数值展示的不是真正的 hash 而是一个随机数值，这里应设置为 true；
+     *                     <p>
+     *                     If you want the random hash value to display a random value instead of a real hash, it should be set to true here;
+     */
+    void setRandomHash(boolean isRandomHash);
+
+    /**
      * @return hashcode
      */
-    int getHashId();
+    double getHashId();
 
     /**
      * 将 当前语法对象以及其子语法对象中用于变量存储的 list 对象 清空。
