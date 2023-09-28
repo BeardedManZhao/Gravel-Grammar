@@ -11,7 +11,7 @@ public enum BuiltInReg {
     SQL_EXTRACTION_REGULAR_MODEL_1 {
         @Override
         public String getPattern() {
-            return "(\\w+\\s+by|\\d+\\s*\\d+\\s*\\d+?;|\\S+)";
+            return "((?:distinct|DISTINCT)\\s+?\\S+|\\w+\\s+by|\\d+\\s*?\\d+\\s*?\\d+|\\S+);*";
         }
     };
 

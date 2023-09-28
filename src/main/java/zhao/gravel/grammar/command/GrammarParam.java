@@ -6,6 +6,7 @@ import zhao.utils.IOUtils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -19,8 +20,9 @@ public class GrammarParam extends StreamString implements Syntax {
     private int hash;
     private boolean randomHash;
 
-    protected GrammarParam(String name, Syntax... allSyntax) {
-        this.name = name;
+    protected GrammarParam(String name, boolean toLower, Syntax... allSyntax) {
+        // 为什么这里改了之后 parse 出来的结果就不对了
+        this.name = toLower ? name.toLowerCase(Locale.ROOT) : name;
         syntaxHashMap = new HashMap<>(allSyntax.length + 4);
         for (Syntax syntax : allSyntax) {
             syntaxHashMap.put(syntax.getSyntaxName(), syntax);
@@ -28,6 +30,10 @@ public class GrammarParam extends StreamString implements Syntax {
         this.randomHash = false;
         this.defaultSyntax = this.syntaxHashMap.getOrDefault(NotFindParam.WILDCARD, NotFindParam.NOT_FIND);
         hash = this.hashCode();
+    }
+
+    protected GrammarParam(String name, Syntax... allSyntax) {
+        this(name, true, allSyntax);
     }
 
     /**
@@ -100,7 +106,7 @@ public class GrammarParam extends StreamString implements Syntax {
      */
     @Override
     public Syntax get(String syntaxName) {
-        final Syntax syntax = this.syntaxHashMap.get(syntaxName);
+        final Syntax syntax = this.syntaxHashMap.get(syntaxName.toLowerCase(Locale.ROOT));
         if (syntax != null) {
             return syntax;
         } else {
