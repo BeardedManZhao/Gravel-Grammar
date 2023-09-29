@@ -26,7 +26,7 @@ public enum BuiltInGrammar {
 
             /* limit */
             final Syntax limit = SaveParam.create("limit", hashMap,
-                    new ActuatorAliasParam(Syntax.WILDCARD, "offset count") {
+                    new ActuatorAliasParam(Syntax.WILDCARD, "这里输入的应为一个或两个数字，用于标识需要查询的部分数据范围。", "offset count") {
                         @Override
                         public Object run() {
                             BuiltInGrammar.check(transformation, 5, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为4的位置。");
@@ -35,7 +35,7 @@ public enum BuiltInGrammar {
                     });
 
             /* order by */
-            final ActuatorAliasParam orderByC = new ActuatorAliasParam(Syntax.WILDCARD, "Order by clause") {
+            final ActuatorAliasParam orderByC = new ActuatorAliasParam(Syntax.WILDCARD, "这里输入的应为一个字符串，用于标识需要做为排序字段的字段名。", "Order by clause") {
                 @Override
                 public Object run() {
                     BuiltInGrammar.check(transformation, 4, "缺少[" + this.getAliasName() + "]参数对应的执行逻辑，此逻辑应位于匿名表达式数组中索引为3的位置。");
@@ -49,7 +49,7 @@ public enum BuiltInGrammar {
             orderByC.addSubSyntax(limit);
 
             /* group by */
-            final ActuatorAliasParam groupByC = new ActuatorAliasParam(Syntax.WILDCARD, "group by fieldName") {
+            final ActuatorAliasParam groupByC = new ActuatorAliasParam(Syntax.WILDCARD, "这里输入的应为一个字符串，用于标识需要做为分组字段的字段名。", "group by fieldName") {
                 /**
                  * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
                  * <p>
@@ -66,7 +66,7 @@ public enum BuiltInGrammar {
             groupByC.addSubSyntax(limit);
 
             /* where 子句 */
-            final ActuatorParam whereC = new ActuatorAliasParam(Syntax.WILDCARD, "Where clause condition") {
+            final ActuatorParam whereC = new ActuatorAliasParam(Syntax.WILDCARD, "这里输入的应为一个等式/不等式，如果此等式成立则代表满足条件。", "Where clause condition") {
 
                 /**
                  * @return 当前执行器参数的执行逻辑函数，执行完毕之后会返回一个任意数据类型。
@@ -84,7 +84,7 @@ public enum BuiltInGrammar {
             whereC.addSubSyntax(limit);
 
             /* table */
-            final ActuatorParam table = new ActuatorAliasParam(Syntax.WILDCARD, "table Name") {
+            final ActuatorParam table = new ActuatorAliasParam(Syntax.WILDCARD, "这里输入的应为一个字符串，代表的是表的名字。", "table Name") {
 
                 @Override
                 public Object run() {
@@ -104,13 +104,13 @@ public enum BuiltInGrammar {
 
             // 首先将 SQL 语法树准备出来 然后直接返回
             return SaveParam.create(
-                    "select",
+                    "select", "SQL 语法中的查询数据操作需要使用到的关键字。",
                     hashMap,
                     SaveParam.create(
-                            Syntax.WILDCARD,
+                            Syntax.WILDCARD, "此处应为被查询的字段",
                             hashMap,
                             SaveParam.create(
-                                    "from",
+                                    "from", "SQL 语法中常用于指定被操作/查询表的名字。",
                                     hashMap,
                                     table
                             )

@@ -6,6 +6,7 @@ import zhao.utils.IOUtils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -15,12 +16,15 @@ public class GrammarParam extends StreamString implements Syntax {
 
     protected final HashMap<String, Syntax> syntaxHashMap;
     private final String name;
+    private final String help_info;
     protected Syntax defaultSyntax;
     private int hash;
     private boolean randomHash;
 
-    protected GrammarParam(String name, Syntax... allSyntax) {
-        this.name = name;
+    protected GrammarParam(String name, boolean toLower, String help_info, Syntax... allSyntax) {
+        this.help_info = help_info;
+        // 为什么这里改了之后 parse 出来的结果就不对了
+        this.name = toLower ? name.toLowerCase(Locale.ROOT) : name;
         syntaxHashMap = new HashMap<>(allSyntax.length + 4);
         for (Syntax syntax : allSyntax) {
             syntaxHashMap.put(syntax.getSyntaxName(), syntax);
@@ -28,6 +32,10 @@ public class GrammarParam extends StreamString implements Syntax {
         this.randomHash = false;
         this.defaultSyntax = this.syntaxHashMap.getOrDefault(NotFindParam.WILDCARD, NotFindParam.NOT_FIND);
         hash = this.hashCode();
+    }
+
+    protected GrammarParam(String name, String help_info, Syntax... allSyntax) {
+        this(name, true, help_info, allSyntax);
     }
 
     /**
@@ -38,7 +46,19 @@ public class GrammarParam extends StreamString implements Syntax {
      * @return 语法对象
      */
     public static Syntax create(String name, Syntax... allSyntax) {
-        final GrammarParam grammarParam = new GrammarParam(name, allSyntax);
+        return create(name, name + " : No Help Info!!!!", allSyntax);
+    }
+
+    /**
+     * 创建出一个语法对象
+     *
+     * @param name      该语法对象对应的参数名称。
+     * @param help_info 该语法对象相关的解析信息。
+     * @param allSyntax 该语法对象中的所有子语法对象
+     * @return 语法对象
+     */
+    public static Syntax create(String name, String help_info, Syntax... allSyntax) {
+        final GrammarParam grammarParam = new GrammarParam(name, help_info, allSyntax);
         grammarParam.addSubSyntax(NotFindParam.NOT_FIND);
         return grammarParam;
     }
@@ -100,7 +120,7 @@ public class GrammarParam extends StreamString implements Syntax {
      */
     @Override
     public Syntax get(String syntaxName) {
-        final Syntax syntax = this.syntaxHashMap.get(syntaxName);
+        final Syntax syntax = this.syntaxHashMap.get(syntaxName.toLowerCase(Locale.ROOT));
         if (syntax != null) {
             return syntax;
         } else {
@@ -195,5 +215,15 @@ public class GrammarParam extends StreamString implements Syntax {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    /**
+     * @return 当前语法参数对象对应的帮助信息，可能是其代表的意义，也可能是其使用方法。
+     * <p>
+     * The help information corresponding to the current syntax parameter object may be its representative meaning or its usage method.
+     */
+    @Override
+    public String getINFO() {
+        return this.help_info;
     }
 }

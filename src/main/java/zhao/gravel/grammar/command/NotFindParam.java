@@ -14,7 +14,7 @@ public class NotFindParam extends GrammarParam {
     public final static NotFindParam NOT_FIND = new NotFindParam();
 
     protected NotFindParam() {
-        super("notFind");
+        super("notFind", "没有找到指定参数对应的执行器。");
     }
 
     /**

@@ -9,13 +9,14 @@
 该框架已上传到 maven 仓库，可以通过如下的 maven 依赖将框架导入到项目中，并按照介绍来使用此框架。
 
 ```xml
-    <dependencies>
-        <dependency>
-            <groupId>io.github.BeardedManZhao</groupId>
-            <artifactId>gravel-Grammar</artifactId>
-            <version>1.0.20230927</version>
-        </dependency>
-    </dependencies>
+
+<dependencies>
+    <dependency>
+        <groupId>io.github.BeardedManZhao</groupId>
+        <artifactId>gravel-Grammar</artifactId>
+        <version>1.0.20230927</version>
+    </dependency>
+</dependencies>
 ```
 
 ## 模块
