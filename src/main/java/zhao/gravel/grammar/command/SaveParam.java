@@ -12,8 +12,8 @@ public class SaveParam extends GrammarParam {
 
     protected final HashMap<String, Object> hashMap;
 
-    protected SaveParam(String name, HashMap<String, Object> hashMap, Syntax... allSyntax) {
-        super(name, allSyntax);
+    protected SaveParam(String name, String help_info, HashMap<String, Object> hashMap, Syntax... allSyntax) {
+        super(name, help_info, allSyntax);
         for (Syntax syntax : allSyntax) {
             if (syntax instanceof SaveParam) {
                 final HashMap<String, Object> hashMap1 = ((SaveParam) syntax).getHashMap();
@@ -35,7 +35,20 @@ public class SaveParam extends GrammarParam {
      * @return 语法对象
      */
     public static Syntax create(String name, HashMap<String, Object> hashMap, Syntax... allSyntax) {
-        return new SaveParam(name, hashMap, allSyntax);
+        return create(name, name + ": No Help Info!!!!", hashMap, allSyntax);
+    }
+
+    /**
+     * 创建出一个语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
+     *
+     * @param name      该语法对象对应的参数名称。
+     * @param help_info 该参数对象对应的帮助信息
+     * @param hashMap   该语法对象用于变量保存操作的容器 (需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。。
+     * @param allSyntax 该语法对象中的所有子语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
+     * @return 语法对象
+     */
+    public static Syntax create(String name, String help_info, HashMap<String, Object> hashMap, Syntax... allSyntax) {
+        return new SaveParam(name, help_info, hashMap, allSyntax);
     }
 
     /**
@@ -46,7 +59,7 @@ public class SaveParam extends GrammarParam {
      * @return 语法对象
      */
     public static Syntax create(String name, Syntax... allSyntax) {
-        return new SaveParam(name, new HashMap<>(), allSyntax);
+        return create(name, new HashMap<>(), allSyntax);
     }
 
     public void save(Object object) {

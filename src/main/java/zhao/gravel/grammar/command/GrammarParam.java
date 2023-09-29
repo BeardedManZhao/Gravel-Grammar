@@ -16,11 +16,13 @@ public class GrammarParam extends StreamString implements Syntax {
 
     protected final HashMap<String, Syntax> syntaxHashMap;
     private final String name;
+    private final String help_info;
     protected Syntax defaultSyntax;
     private int hash;
     private boolean randomHash;
 
-    protected GrammarParam(String name, boolean toLower, Syntax... allSyntax) {
+    protected GrammarParam(String name, boolean toLower, String help_info, Syntax... allSyntax) {
+        this.help_info = help_info;
         // 为什么这里改了之后 parse 出来的结果就不对了
         this.name = toLower ? name.toLowerCase(Locale.ROOT) : name;
         syntaxHashMap = new HashMap<>(allSyntax.length + 4);
@@ -32,8 +34,8 @@ public class GrammarParam extends StreamString implements Syntax {
         hash = this.hashCode();
     }
 
-    protected GrammarParam(String name, Syntax... allSyntax) {
-        this(name, true, allSyntax);
+    protected GrammarParam(String name, String help_info, Syntax... allSyntax) {
+        this(name, true, help_info, allSyntax);
     }
 
     /**
@@ -44,7 +46,19 @@ public class GrammarParam extends StreamString implements Syntax {
      * @return 语法对象
      */
     public static Syntax create(String name, Syntax... allSyntax) {
-        final GrammarParam grammarParam = new GrammarParam(name, allSyntax);
+        return create(name, name + " : No Help Info!!!!", allSyntax);
+    }
+
+    /**
+     * 创建出一个语法对象
+     *
+     * @param name      该语法对象对应的参数名称。
+     * @param help_info 该语法对象相关的解析信息。
+     * @param allSyntax 该语法对象中的所有子语法对象
+     * @return 语法对象
+     */
+    public static Syntax create(String name, String help_info, Syntax... allSyntax) {
+        final GrammarParam grammarParam = new GrammarParam(name, help_info, allSyntax);
         grammarParam.addSubSyntax(NotFindParam.NOT_FIND);
         return grammarParam;
     }
@@ -201,5 +215,15 @@ public class GrammarParam extends StreamString implements Syntax {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    /**
+     * @return 当前语法参数对象对应的帮助信息，可能是其代表的意义，也可能是其使用方法。
+     * <p>
+     * The help information corresponding to the current syntax parameter object may be its representative meaning or its usage method.
+     */
+    @Override
+    public String getINFO() {
+        return this.help_info;
     }
 }

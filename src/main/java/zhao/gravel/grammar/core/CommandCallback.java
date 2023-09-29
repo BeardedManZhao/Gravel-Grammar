@@ -30,7 +30,7 @@ public class CommandCallback extends GrammarParam implements SyntaxCallback {
      * @param syntax  所有的语法树对象
      */
     protected CommandCallback(String pattern, Syntax... syntax) {
-        super(pattern, false, syntax);
+        super(pattern, false, "A module used to parse commands, typically storing one or more syntax trees!!!", syntax);
     }
 
     /**

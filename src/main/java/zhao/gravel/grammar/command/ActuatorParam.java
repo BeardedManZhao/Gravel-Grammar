@@ -7,9 +7,12 @@ import java.io.PrintWriter;
  */
 public abstract class ActuatorParam extends GrammarParam {
 
-
     protected ActuatorParam(String name) {
-        super(name);
+        super(name, "No Help Info");
+    }
+
+    protected ActuatorParam(String name, String help_info) {
+        super(name, help_info);
     }
 
     /**

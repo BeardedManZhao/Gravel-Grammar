@@ -107,4 +107,11 @@ public interface Syntax extends Cloneable {
      * The cloned grammar object.
      */
     Syntax clone();
+
+    /**
+     * @return 当前语法参数对象对应的帮助信息，可能是其代表的意义，也可能是其使用方法。
+     * <p>
+     * The help information corresponding to the current syntax parameter object may be its representative meaning or its usage method.
+     */
+    String getINFO();
 }

@@ -19,7 +19,11 @@ public abstract class ActuatorAliasParam extends ActuatorParam {
     }
 
     protected ActuatorAliasParam(String name, String aliasName) {
-        super(name);
+        this(name, aliasName + ": No Help Info!!!", aliasName);
+    }
+
+    protected ActuatorAliasParam(String name, String help_info, String aliasName) {
+        super(name, help_info);
         this.alias = aliasName;
     }
 
