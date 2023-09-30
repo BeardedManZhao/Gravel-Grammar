@@ -1,5 +1,12 @@
 package zhao.gravel.grammar.core.model;
 
+/**
+ * 解析模式枚举类，其中包含的为处理命令或语法的模式项，不同的项对于命令的处理与解析模式不同。
+ * <p>
+ * Parsing mode enumeration class, which contains mode items for processing commands or syntax. Different items have different processing and parsing modes for commands.
+ *
+ * @author zhao
+ */
 public enum AnalyticalModel {
 
     /**

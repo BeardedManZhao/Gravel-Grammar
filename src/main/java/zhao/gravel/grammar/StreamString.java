@@ -3,6 +3,10 @@ package zhao.gravel.grammar;
 import java.io.PrintWriter;
 
 /**
+ * 当前类用于支持有关toString函数的流程图模式的调用，通过此类，可以实现将当前类的字符串传递给一个 PrintStream 对象的效果。
+ * <p>
+ * The current class is used to support the call of flowchart patterns related to the toString function. Through this class, the effect of passing the string of the current class to a PrintStream object can be achieved.
+ *
  * @author zhao
  */
 public abstract class StreamString {

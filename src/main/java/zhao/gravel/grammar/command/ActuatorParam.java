@@ -3,6 +3,10 @@ package zhao.gravel.grammar.command;
 import java.io.PrintWriter;
 
 /**
+ * 执行参数类，该类在语法树中扮演的一般是可以被执行的参数位置，例如最后一个参数，该类处理最基本的语法树的存储以外，还具有执行语法的能力。
+ * <p>
+ * Execution parameter class, which generally plays a role in the syntax tree as a parameter position that can be executed, such as the last parameter. In addition to handling the storage of the most basic syntax tree, this class also has the ability to execute syntax.
+ *
  * @author zhao
  */
 public abstract class ActuatorParam extends GrammarParam {

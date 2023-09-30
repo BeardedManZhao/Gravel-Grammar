@@ -23,5 +23,10 @@ public enum BuiltInReg {
         }
     };
 
+    /**
+     * @return 当前项对应正则表达式的字符串对象。
+     * <p>
+     * The string object corresponding to the regular expression for the current item.
+     */
     public abstract String getPattern();
 }

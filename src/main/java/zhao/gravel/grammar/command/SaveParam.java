@@ -42,9 +42,17 @@ public class SaveParam extends GrammarParam {
      * 创建出一个语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
      *
      * @param name      该语法对象对应的参数名称。
+     *                  <p>
+     *                  The parameter name corresponding to this syntax object.
      * @param help_info 该参数对象对应的帮助信息
-     * @param hashMap   该语法对象用于变量保存操作的容器 (需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。。
+     *                  <p>
+     *                  The help information corresponding to this parameter object
+     * @param hashMap   该语法对象用于变量保存操作的容器 (需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
+     *                  <p>
+     *                  This syntax object is used as a container for variable save operations (it should be noted that all sub syntax objects should be stored in the same hashMap container as the current syntax object).
      * @param allSyntax 该语法对象中的所有子语法对象(需要注意的是，所有的子语法对象都应该与当前的语法对象存储同一个 hashMap 容器)。
+     *                  <p>
+     *                  All sub grammar objects in this grammar object (it should be noted that all sub grammar objects should be stored in the same hashMap container as the current grammar object).
      * @return 语法对象
      */
     public static Syntax create(String name, String help_info, HashMap<String, Object> hashMap, Syntax... allSyntax) {
