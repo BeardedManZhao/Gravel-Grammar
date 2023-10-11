@@ -14,6 +14,6 @@ public class MAIN {
                 BuiltInReg.SQL_EXTRACTION_REGULAR_MODEL_1, BuiltInGrammar.SQL_SELECT.get()
         );
         // 打印其中的语法树
-        System.out.println(callback.get("select").get("*").get("from").get("data").get("where"));
+        System.out.println(callback.run("select * from data;"));
     }
 }
