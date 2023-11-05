@@ -13,6 +13,11 @@ public abstract class ActuatorAliasParam extends ActuatorParam {
 
     protected final String alias;
 
+    /**
+     * 执行器的名称
+     *
+     * @param name 执行器的名称 会在语法树的图中显示，也可以做为语法对象使用
+     */
     protected ActuatorAliasParam(String name) {
         super(name);
         this.alias = super.getSyntaxName();

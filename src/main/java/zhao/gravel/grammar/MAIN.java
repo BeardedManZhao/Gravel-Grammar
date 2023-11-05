@@ -1,19 +1,27 @@
 package zhao.gravel.grammar;
 
+import zhao.gravel.grammar.command.ActuatorTF;
 import zhao.gravel.grammar.core.BuiltInGrammar;
 import zhao.gravel.grammar.core.BuiltInReg;
 import zhao.gravel.grammar.core.CommandCallback;
+import zhao.gravel.grammar.core.model.AnalyticalModel;
+
+import java.util.AbstractMap;
 
 /**
  * @author zhao
  */
 public class MAIN {
     public static void main(String[] args) {
-        // 获取到 SQL_Select 语法树 对应的回调函数
         final CommandCallback callback = CommandCallback.createGet(
-                BuiltInReg.SQL_EXTRACTION_REGULAR_MODEL_1, BuiltInGrammar.SQL_SELECT.get()
+                BuiltInReg.SQL_EXTRACTION_REGULAR_MODEL_1, BuiltInGrammar.SQL_SELECT.get(
+                        (ActuatorTF) AbstractMap::toString,
+                        (ActuatorTF) AbstractMap::toString,
+                        (ActuatorTF) AbstractMap::toString,
+                        (ActuatorTF) AbstractMap::toString
+                )
         );
-        // 打印其中的语法树
-        System.out.println(callback.run("select * from data;"));
+        callback.setAnalyticalModel(AnalyticalModel.REGULAR_MODEL_1);
+        System.out.println(callback.run("select * from zhao where age > 20;"));
     }
 }

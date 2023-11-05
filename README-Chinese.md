@@ -112,23 +112,31 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // 准备一个变量容器
-        HashMap<String, Object> hashMap = new ArrayList<>();
+        HashMap<String, Object> hashMap = new HashMap<>();
         // 开始构建 具有变量保存功能的语法树
         return SaveParam.create(
                 "use", hashMap,
                 SaveParam.create(
+                        // 设置参数对象的名字为 WILDCARD 就代表此处语法是个变量
                         Syntax.WILDCARD, hashMap,
                         // 设置 use [param] show 命令的执行器
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + hashMap.get("show");
+                                // 由于 use 的子语法对象是一个变量对象 因此use对应的子句会存储在 Map 中
+                                // 执行器代表的就是最后一个参数的标识，当命令遇到此参数 
+                                // 且命令中没有此执行器的子语法，则执行此执行器的逻辑
+                                // 在这里我们希望执行完命令之后 将 use 子句的值获取到并进行展示
+                                return "show " + hashMap.get("use");
                             }
                         },
                         // 设置 use [param] rm 命令的执行器
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
+                                // 执行器代表的就是最后一个参数的标识，当命令遇到此参数 
+                                // 且命令中没有此执行器的子语法，则执行此执行器的逻辑
+                                // 在这里我们希望执行完命令之后 将存储变量的 Map 返回
                                 return hashMap.clone();
                             }
                         }
@@ -200,13 +208,20 @@ public class MAIN {
                         new ActuatorParam("show") {
                             @Override
                             public Object run() {
-                                return "show " + hashMap.get("show");
+                                // 由于 use 的子语法对象是一个变量对象 因此use对应的子句会存储在 Map 中
+                                // 执行器代表的就是最后一个参数的标识，当命令遇到此参数 
+                                // 且命令中没有此执行器的子语法，则执行此执行器的逻辑
+                                // 在这里我们希望执行完命令之后 将 use 子句的值获取到并进行展示
+                                return "show " + hashMap.get("use");
                             }
                         },
                         // 设置 use [param] rm 命令的执行器
                         new ActuatorParam("show_list") {
                             @Override
                             public Object run() {
+                                // 执行器代表的就是最后一个参数的标识，当命令遇到此参数 
+                                // 且命令中没有此执行器的子语法，则执行此执行器的逻辑
+                                // 在这里我们希望执行完命令之后 将存储变量的 Map 返回
                                 return hashMap.clone();
                             }
                         }
@@ -222,13 +237,129 @@ show zhao
 [zhao]
 ```
 
+### 分布构造语法
+
+在这里，我们将展示一个示例，示例内容为：”实现下面的命令 此命令会将 路径 参数存储在变量池中，当运行出结果之后，会返回变量的Map集合“。
+
+```shell
+java -jar [路径] --class [路径]
+```
+
+接下来就是有关的代码实现，以及运行结果展示。
+
+```java
+package zhao.gravel.grammar;
+
+import zhao.gravel.grammar.command.ActuatorParam;
+import zhao.gravel.grammar.command.GrammarParam;
+import zhao.gravel.grammar.command.SaveParam;
+import zhao.gravel.grammar.command.Syntax;
+import zhao.gravel.grammar.core.CommandCallback;
+
+import java.util.HashMap;
+
+/**
+ * @author zhao
+ */
+public class MAIN {
+    public static void main(String[] args) {
+        // 首先 构建第一个语法 java 由于此语法 后面只有 -jar 其不需要存储变量 因此我们可以直接使用 GrammarParam 进行构造
+        final Syntax java = GrammarParam.create("java");
+
+        // 然后 继续实现 -jar 参数 需要注意的是 此参数的子句是个变量 因此此参数需要为 SaveParam
+        // 又因为此参数的存储需要一个集合 因此在这里我们需要将集合先构建出来 然后构建 SaveParam
+        final HashMap<String, Object> hashMap = new HashMap<>();
+        final Syntax jar_1 = SaveParam.create("-jar", hashMap);
+        // 将此语法做为 java 命令的子语法对象
+        java.addSubSyntax(jar_1);
+
+        // 接下来我们构建 -jar 的子句变量，在这里需要知道一个事情，所有为 Syntax.WILDCARD 的SaveParma 都代表是一个变量
+        // 因此在这里我们需要将此参数的名字设置为 Syntax.WILDCARD
+        final Syntax syntax_1 = SaveParam.create(Syntax.WILDCARD, hashMap);
+        // 然后将其做为 -jar 命令的子语法
+        jar_1.addSubSyntax(syntax_1);
+
+        // 接下来我们需要构建 --class 参数 此对象的子句也是个变量 因此需要使用 SaveParam
+        final Syntax class_1 = SaveParam.create("--class", hashMap);
+        // 将此语法做为 -jar 的子句变量的子语法 因为在命令中 他排在 -jar 子句变量的后面
+        syntax_1.addSubSyntax(class_1);
+
+        // 最后我们开始构建执行器 因为在这里就是最后一个命令了，可以开始执行了
+        // 同时又因为其是一个变量 因此这里应该是一个名称为 Syntax.WILDCARD 的执行器
+        final ActuatorParam actuatorParam = new ActuatorParam(Syntax.WILDCARD) {
+            @Override
+            public Object run() {
+                // 在这里按题目要求 将 变量的 Map 返回出来
+                return hashMap.clone();
+            }
+        };
+        // 在将执行器做为 --class 命令的子语法对象
+        class_1.addSubSyntax(actuatorParam);
+        // 将整个 java 命令提供给回调器
+        final CommandCallback commandCallback = CommandCallback.createGet(
+                // 在这里我们要指定回调器解析命令的方式 在这里是使用的按照 \\s+ 正则切分
+                "\\s+", java
+        );
+
+        // 打印回调器的语法树
+        System.out.println(commandCallback);
+        // 开始执行
+        final Object run = commandCallback.run("java -jar zhao.jar --class zhao.com.core.run.xxx");
+        // 打印函数结果
+        System.out.println(run);
+    }
+}
+```
+
+```
+graph BR
+5.57041912E8[java] --> 9.85922955E8[-jar]
+9.85922955E8[-jar] --> 1.435804085E9[^_^]
+1.435804085E9[^_^] --> 1.784662007E9[--class]
+1.784662007E9[--class] --> 1.854778591E9[^_^]
+1.854778591E9([^_^]) --> 0.8658649515777185[runCommand!!!!]
+5.57041912E8[java] --> 1.239731077E9[notfind]
+
+{--class=zhao.com.core.run.xxx, -jar=zhao.jar}
+```
+
 ## 实际使用示例
 
 ### 手动实现语法解析器
 
 我们可以通过装饰器的构造方式来在 create 函数中添加子语法参数，实现语法树的构建操作，其图示如下所示。
 
-[image]
+```java
+package zhao.gravel.grammar;
+
+import zhao.gravel.grammar.command.ActuatorParam;
+import zhao.gravel.grammar.command.SaveParam;
+import zhao.gravel.grammar.command.Syntax;
+
+/**
+ * @author zhao
+ */
+public class MAIN {
+    public static void main(String[] args) {
+        final Syntax syntax = SaveParam.create(
+                "c1", SaveParam.create(
+                        "c2", SaveParam.create(
+                                "c3", SaveParam.create(
+                                        "c4"
+                                )
+                        )
+                )
+        );
+        // 最后添加一个执行器 执行器本身也是一个 Syntax 对象 也可以直接在 create 中进行构造
+        syntax.addSubSyntax(new ActuatorParam("run") {
+            @Override
+            public Object run() {
+                return "ok!!!";
+            }
+        });
+    }
+}
+```
 
 在下面展示的就是通过 create 函数创建一个解析树并将树提供给回调器的操作示例。
 
