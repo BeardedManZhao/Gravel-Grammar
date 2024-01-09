@@ -120,7 +120,7 @@ public class MAIN {
 
     private static Syntax getSyntax() {
         // Prepare a variable container
-        HashMap<String, Object> arrayList = new ArrayList<>();
+        HashMap<String, Object> arrayList = new HashMap<>();
         // Start building a syntax tree with variable saving function
         return SaveParam.create(
                 "use", arrayList,
